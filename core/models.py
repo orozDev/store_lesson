@@ -1,13 +1,7 @@
 from django.db import models
 from django_resized import ResizedImageField
 
-
-class TimeStampAbstractModel(models.Model):
-    created_at = models.DateTimeField('дата добавление', auto_now_add=True)
-    updated_at = models.DateTimeField('дата изменения', auto_now=True)
-
-    class Meta:
-        abstract = True
+from utils.models import TimeStampAbstractModel
 
 
 class Category(TimeStampAbstractModel):
@@ -44,7 +38,7 @@ class Product(TimeStampAbstractModel):
     category = models.ForeignKey('core.Category', models.PROTECT, verbose_name='категория')
     tags = models.ManyToManyField('core.Tag', verbose_name='теги')
     price = models.DecimalField('цена', max_digits=6, decimal_places=2, default=0.0)
-    user = models.ForeignKey('auth.User', models.CASCADE, verbose_name='пользователь')
+    user = models.ForeignKey('account.User', models.CASCADE, verbose_name='пользователь')
     is_published = models.BooleanField('публичность', default=True)
 
     @property

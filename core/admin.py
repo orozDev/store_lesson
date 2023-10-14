@@ -29,13 +29,13 @@ class ProductAdminForm(forms.ModelForm):
         fields = '__all__'
 
 
-class ProductImageStackedInline(admin.StackedInline):
+class ProductImageStackedInline(admin.TabularInline):
 
     model = ProductImage
     extra = 1
 
 
-class ProductAttributeStackedInline(admin.StackedInline):
+class ProductAttributeStackedInline(admin.TabularInline):
 
     model = ProductAttribute
     extra = 1
