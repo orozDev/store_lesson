@@ -23,6 +23,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class ProductAdminForm(forms.ModelForm):
 
     content = forms.CharField(widget=CKEditorUploadingWidget(), label='Контент')
+    description = forms.CharField(widget=forms.Textarea, label='Описание')
 
     class Meta:
         model = Product
