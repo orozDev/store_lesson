@@ -41,7 +41,7 @@ def list_products(request):
     offset = request.GET.get('offset', 1)
     paginator = Paginator(products, limit)
     products = paginator.get_page(offset)
-    serializer = ProductSerializer(instance=products, many=True)
+    serializer = ProductSerializer(instance=products, many=True, context={'request': request})
     response = {
         'count': count,
         'limit': int(limit),
@@ -55,5 +55,5 @@ def list_products(request):
 @api_view()
 def detail_products(request, id):
     product = get_object_or_404(Product, id=id)
-    serializer = ProductSerializer(instance=product, many=False)
+    serializer = ProductSerializer(instance=product, many=False, context={'request': request})
     return Response(serializer.data)

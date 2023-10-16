@@ -16,12 +16,17 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-
     category = CategorySerializer(many=False)
     tags = TagSerializer(many=True)
     user = serializers.CharField(source='user.email')
     user_id = serializers.IntegerField(source='user.id')
+    # image = serializers.ReadOnlyField(source='image.url')
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = '__all__'
+
+    def get_image(self, obj):
+        req = self.context['request']
+        return req.build_absolute_uri(obj.image.url)
