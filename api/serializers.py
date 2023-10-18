@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from core.models import Category, Product, Tag
+from core.models import Category, Product, Tag, ProductImage
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ('id', 'name', 'created_at')
+        fields = '__all__'
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -27,6 +27,28 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
-    def get_image(self, obj):
+    def get_image(self, item):
         req = self.context['request']
-        return req.build_absolute_uri(obj.image.url)
+        if item.image:
+            return req.build_absolute_uri(item.image.url)
+        return None
+
+
+class ProductImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProductImage
+        fields = ('image',)
+
+
+class CreateProductSerializer(serializers.ModelSerializer):
+
+    image = serializers.ImageField()
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def create(self, validated_data):
+        validated_data.pop('image', None)
+        return super().create(validated_data)

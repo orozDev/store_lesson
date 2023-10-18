@@ -54,10 +54,14 @@ class ProductAdmin(admin.ModelAdmin):
 
     @admin.display(description='Изображение')
     def get_image(self, item):
-        return mark_safe(f'<img src="{item.image.url}" width="150px">')
+        if item.image:
+            return mark_safe(f'<img src="{item.image.url}" width="150px">')
+        return '-'
 
     @admin.display(description='Изображение')
     def get_big_image(self, item):
-        return mark_safe(f'<img src="{item.image.url}" width="100%">')
+        if item.image:
+            return mark_safe(f'<img src="{item.image.url}" width="100%">')
+        return '-'
 
 # Register your models here.

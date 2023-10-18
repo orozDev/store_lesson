@@ -43,7 +43,9 @@ class Product(TimeStampAbstractModel):
 
     @property
     def image(self):
-        return self.images.first().image
+        if self.images.first():
+            return self.images.first().image
+        return None
 
     def __str__(self):
         return f'{self.name}'
