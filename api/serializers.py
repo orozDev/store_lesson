@@ -41,7 +41,7 @@ class ProductImageSerializer(serializers.ModelSerializer):
         fields = ('image',)
 
 
-class CreateProductSerializer(serializers.ModelSerializer):
+class CreateUpdateProductSerializer(serializers.ModelSerializer):
 
     image = serializers.ImageField()
 
@@ -52,3 +52,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('image', None)
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data.pop('image', None)
+        return super().update(instance, validated_data)

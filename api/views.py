@@ -2,10 +2,9 @@ from rest_framework.decorators import api_view
 from django.core.paginator import Paginator
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
 from rest_framework import status
 
-from api.serializers import CategorySerializer, ProductSerializer, CreateProductSerializer, ProductImageSerializer
+from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
 from core.models import Category, Product
 
 
@@ -44,6 +43,15 @@ def create_category(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['PUT'])
+def update_category(request, id):
+    category = get_object_or_404(Category, id=id)
+    serializer = CategorySerializer(instance=category, data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    return Response(serializer.data)
+
+
 @api_view()
 def list_products(request):
     products = Product.objects.all()
@@ -72,7 +80,7 @@ def detail_products(request, id):
 
 @api_view(['POST'])
 def create_product(request):
-    create_serializer = CreateProductSerializer(data=request.data)
+    create_serializer = CreateUpdateProductSerializer(data=request.data)
     create_serializer.is_valid(raise_exception=True)
     product = create_serializer.save()
     image_serializer = ProductImageSerializer(data={'image': request.data['image']})
@@ -80,3 +88,17 @@ def create_product(request):
     image_serializer.save(product=product)
     serializer = ProductSerializer(instance=product, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['PATCH'])
+def update_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    serializer = CreateUpdateProductSerializer(instance=product, data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    product = serializer.save()
+    if request.data.get('image', False):
+        image_serializer = ProductImageSerializer(data={'image': request.data['image']})
+        image_serializer.is_valid(raise_exception=True)
+        image_serializer.save(product=product)
+    response_serializer = ProductSerializer(instance=product, context={'request': request})
+    return Response(response_serializer.data)
