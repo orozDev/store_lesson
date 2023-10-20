@@ -102,3 +102,17 @@ def update_product(request, id):
         image_serializer.save(product=product)
     response_serializer = ProductSerializer(instance=product, context={'request': request})
     return Response(response_serializer.data)
+
+
+@api_view(['DELETE'])
+def delete_product(request, id):
+    product = get_object_or_404(Product, id=id)
+    product.delete()
+    return Response({'is_deleted': True}, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['DELETE'])
+def delete_category(request, id):
+    category = get_object_or_404(Category, id=id)
+    category.delete()
+    return Response({'is_deleted': True}, status=status.HTTP_204_NO_CONTENT)
