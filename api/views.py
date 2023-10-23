@@ -1,11 +1,61 @@
-from rest_framework.decorators import api_view
 from django.core.paginator import Paginator
-from rest_framework.generics import get_object_or_404
-from rest_framework.response import Response
+from django.http import Http404
 from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.generics import get_object_or_404, GenericAPIView
+from rest_framework.response import Response
 
+from api.paginations import SimpleResultPagination
 from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
 from core.models import Category, Product
+
+
+class CategoriesGenericAPIView(GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = SimpleResultPagination
+
+    def get(self, request):
+        categories = self.queryset
+        queryset = self.paginate_queryset(categories)
+        serializer = self.serializer_class(queryset, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DetailCategoryGenericAPIView(GenericAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
+
+    def get_item(self, id):
+        try:
+            return self.queryset.get(id=id)
+        except Category.DoesNotExist as e:
+            raise Http404
+
+    def get(self, request, id):
+        category = self.get_item(id)
+        serializer = self.serializer_class(instance=category, many=False)
+        return Response(serializer.data)
+
+    def put(self, request, id):
+        category = self.get_item(id)
+        serializer = self.serializer_class(instance=category, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def delete(self):
+        category = self.get_item(id)
+        category.delete()
+        return Response({'is_deleted': True}, status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view()
