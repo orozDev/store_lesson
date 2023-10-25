@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 
 import api.views
 from . import views
@@ -12,4 +12,5 @@ urlpatterns = [
     path('products/<int:id>/', api.views.detail_products),
     path('products/<int:id>/update/', api.views.update_product),
     path('products/<int:id>/delete/', api.views.delete_product),
+    path('auth/', include('api.auth.urls')),
 ]

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'phonenumber_field',
     'rest_framework',
+    'rest_framework.authtoken',
     'account',
     'core',
 ]
@@ -132,7 +133,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'account.User'
 
-REST_FRAMEWORK = {}
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_CONFIGS = {

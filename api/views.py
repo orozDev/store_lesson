@@ -16,6 +16,7 @@ class CategoriesGenericAPIView(GenericAPIView):
     pagination_class = SimpleResultPagination
 
     def get(self, request):
+        print(request.user)
         categories = self.queryset
         queryset = self.paginate_queryset(categories)
         serializer = self.serializer_class(queryset, many=True)
