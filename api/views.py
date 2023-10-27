@@ -3,9 +3,12 @@ from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.generics import get_object_or_404, GenericAPIView
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, SAFE_METHODS, AllowAny
+from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 
 from api.paginations import SimpleResultPagination
+from api.permissions import IsOwner, IsSuperAdmin, IsSuperAdminOrReadOnly
 from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
 from core.models import Category, Product
 
@@ -14,9 +17,9 @@ class CategoriesGenericAPIView(GenericAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = SimpleResultPagination
+    permission_classes = (IsAuthenticatedOrReadOnly, IsSuperAdminOrReadOnly,)
 
     def get(self, request):
-        print(request.user)
         categories = self.queryset
         queryset = self.paginate_queryset(categories)
         serializer = self.serializer_class(queryset, many=True)
@@ -33,6 +36,7 @@ class CategoriesGenericAPIView(GenericAPIView):
 class DetailCategoryGenericAPIView(GenericAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    permission_classes = (IsAuthenticatedOrReadOnly, IsSuperAdminOrReadOnly,)
     lookup_field = 'id'
 
     def get_item(self, id):
@@ -60,6 +64,7 @@ class DetailCategoryGenericAPIView(GenericAPIView):
 
 
 @api_view()
+@permission_classes((AllowAny,))
 def list_categories(request):
     categories = Category.objects.all()
     count = categories.count()
@@ -86,6 +91,7 @@ def detail_categories(request, id):
 
 
 @api_view(['POST'])
+@permission_classes((IsAuthenticated, IsSuperAdmin))
 def create_category(request):
     serializer = CategorySerializer(data=request.data)
     if serializer.is_valid():
@@ -95,6 +101,7 @@ def create_category(request):
 
 
 @api_view(['PUT'])
+@permission_classes((IsAuthenticated, IsSuperAdmin))
 def update_category(request, id):
     category = get_object_or_404(Category, id=id)
     serializer = CategorySerializer(instance=category, data=request.data)
@@ -130,6 +137,7 @@ def detail_products(request, id):
 
 
 @api_view(['POST'])
+@permission_classes((IsAuthenticated,))
 def create_product(request):
     create_serializer = CreateUpdateProductSerializer(data=request.data)
     create_serializer.is_valid(raise_exception=True)
@@ -142,6 +150,7 @@ def create_product(request):
 
 
 @api_view(['PATCH'])
+@permission_classes((IsAuthenticated, IsOwner))
 def update_product(request, id):
     product = get_object_or_404(Product, id=id)
     serializer = CreateUpdateProductSerializer(instance=product, data=request.data, partial=True)
@@ -156,6 +165,8 @@ def update_product(request, id):
 
 
 @api_view(['DELETE'])
+@permission_classes((IsAuthenticated, IsOwner))
+# @permission_classes((IsAuthenticated | IsOwner))
 def delete_product(request, id):
     product = get_object_or_404(Product, id=id)
     product.delete()
@@ -163,6 +174,7 @@ def delete_product(request, id):
 
 
 @api_view(['DELETE'])
+@permission_classes((IsAuthenticated, IsSuperAdmin))
 def delete_category(request, id):
     category = get_object_or_404(Category, id=id)
     category.delete()

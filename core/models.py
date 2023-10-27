@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_resized import ResizedImageField
 
@@ -33,12 +34,13 @@ class Product(TimeStampAbstractModel):
         ordering = ('-created_at',)
 
     name = models.CharField('название', max_length=100)
-    description = models.CharField('описание', max_length=255)
+    description = models.CharField('описание', max_length=255, help_text='Просто описание')
     content = models.TextField('контент')
-    category = models.ForeignKey('core.Category', models.PROTECT, verbose_name='категория')
+    category = models.ForeignKey('core.Category', models.PROTECT, verbose_name='категория', help_text='Выберите категорию')
     tags = models.ManyToManyField('core.Tag', verbose_name='теги')
-    price = models.DecimalField('цена', max_digits=6, decimal_places=2, default=0.0)
+    price = models.DecimalField('цена', max_digits=10, decimal_places=2, default=0.0)
     user = models.ForeignKey('account.User', models.CASCADE, verbose_name='пользователь')
+    rating = models.PositiveIntegerField('рейтинг', validators=[MinValueValidator(1), MaxValueValidator(5)])
     is_published = models.BooleanField('публичность', default=True)
 
     @property
