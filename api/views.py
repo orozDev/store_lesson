@@ -1,66 +1,36 @@
 from django.core.paginator import Paginator
-from django.http import Http404
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.generics import get_object_or_404, GenericAPIView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, SAFE_METHODS, AllowAny
 from rest_framework.decorators import permission_classes
+from rest_framework.generics import get_object_or_404, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from api.paginations import SimpleResultPagination
-from api.permissions import IsOwner, IsSuperAdmin, IsSuperAdminOrReadOnly
+from api.permissions import IsOwner, IsSuperAdmin
 from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
 from core.models import Category, Product
 
 
-class CategoriesGenericAPIView(GenericAPIView):
+class CategoriesAPIView(
+    # ListAPIView, CreateAPIView
+    ListCreateAPIView,
+):
     queryset = Category.objects.all()
+    permission_classes = (AllowAny,)
     serializer_class = CategorySerializer
     pagination_class = SimpleResultPagination
-    permission_classes = (IsAuthenticatedOrReadOnly, IsSuperAdminOrReadOnly,)
-
-    def get(self, request):
-        categories = self.queryset
-        queryset = self.paginate_queryset(categories)
-        serializer = self.serializer_class(queryset, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    def post(self, request):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class DetailCategoryGenericAPIView(GenericAPIView):
+class DetailCategoryRetrieveAPIView(
+    # RetrieveAPIView, DestroyAPIView, UpdateAPIView
+    RetrieveUpdateDestroyAPIView
+
+):
     queryset = Category.objects.all()
+    permission_classes = (AllowAny,)
     serializer_class = CategorySerializer
-    permission_classes = (IsAuthenticatedOrReadOnly, IsSuperAdminOrReadOnly,)
     lookup_field = 'id'
-
-    def get_item(self, id):
-        try:
-            return self.queryset.get(id=id)
-        except Category.DoesNotExist as e:
-            raise Http404
-
-    def get(self, request, id):
-        category = self.get_item(id)
-        serializer = self.serializer_class(instance=category, many=False)
-        return Response(serializer.data)
-
-    def put(self, request, id):
-        category = self.get_item(id)
-        serializer = self.serializer_class(instance=category, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def delete(self):
-        category = self.get_item(id)
-        category.delete()
-        return Response({'is_deleted': True}, status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view()

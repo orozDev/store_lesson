@@ -11,7 +11,7 @@ class LoginGenericAPIView(GenericAPIView):
     serializer_class = LoginSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
@@ -31,7 +31,7 @@ class RegisterGenericAPIView(GenericAPIView):
     serializer_class = RegisterUserSerializer
 
     def post(self, request):
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         token = Token.objects.get_or_create(user=user)[0]
