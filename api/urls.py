@@ -3,15 +3,18 @@ from django.urls import path, include
 import api.views
 from . import views
 
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register('products', views.ProductReadOnlyModelViewSet)
+router.register('categories', views.CategoryModelViewSet)
+
 
 urlpatterns = [
-    path('categories/', views.CategoriesAPIView.as_view()),
-    # path('categories/create/', views.CategoriesCreateAPIView.as_view()),
-    path('categories/<int:id>/', views.DetailCategoryRetrieveAPIView.as_view()),
-    path('products/', api.views.list_products),
     path('products/create/', api.views.create_product),
-    path('products/<int:id>/', api.views.detail_products),
     path('products/<int:id>/update/', api.views.update_product),
     path('products/<int:id>/delete/', api.views.delete_product),
     path('auth/', include('api.auth.urls')),
+
+    path('', include(router.urls))
 ]
