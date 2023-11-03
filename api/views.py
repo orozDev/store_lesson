@@ -10,6 +10,7 @@ from rest_framework import filters
 
 from django_filters.rest_framework import DjangoFilterBackend
 
+from api.filters import ProductFilter
 from api.paginations import SimpleResultPagination
 from api.permissions import IsOwner, IsSuperAdmin
 from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
@@ -32,7 +33,8 @@ class ProductReadOnlyModelViewSet(ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
     ordering_fields = ['rating', 'is_published', 'price']
     search_fields = ['name', 'description', 'content']
-    filterset_fields = ['category', 'tags', 'user', 'is_published']
+    # filterset_fields = ['category', 'tags', 'user', 'is_published']
+    filterset_class = ProductFilter
     permission_classes = (AllowAny,)
 
 
