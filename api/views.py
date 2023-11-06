@@ -11,6 +11,7 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 from api.filters import ProductFilter
+from api.mixins import SerializeByActionMixin, PermissionByActionMixin, UltraModelViewSet
 from api.paginations import SimpleResultPagination
 from api.permissions import IsOwner, IsSuperAdmin
 from api.serializers import CategorySerializer, ProductSerializer, CreateUpdateProductSerializer, ProductImageSerializer
@@ -25,9 +26,15 @@ class CategoryModelViewSet(ModelViewSet):
     permission_classes = (AllowAny,)
 
 
-class ProductReadOnlyModelViewSet(ReadOnlyModelViewSet):
+class ProductViewSet(UltraModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+    # serializer_class = ProductSerializer
+    serializer_classes = {
+        'list': ProductSerializer,
+        'update': CreateUpdateProductSerializer,
+        'create': CreateUpdateProductSerializer,
+        'retrieve': ProductSerializer,
+    }
     pagination_class = SimpleResultPagination
     lookup_field = 'id'
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
@@ -35,7 +42,37 @@ class ProductReadOnlyModelViewSet(ReadOnlyModelViewSet):
     search_fields = ['name', 'description', 'content']
     # filterset_fields = ['category', 'tags', 'user', 'is_published']
     filterset_class = ProductFilter
-    permission_classes = (AllowAny,)
+    # permission_classes = (AllowAny,)
+    permission_classes_by_action = {
+        'list': (AllowAny,),
+        'retrieve': (AllowAny,),
+        'create': (IsAuthenticated,),
+        'update': (IsAuthenticated, IsOwner,),
+        'destroy': (IsAuthenticated, IsOwner,),
+    }
+
+    def create(self, request, *args, **kwargs):
+        create_serializer = self.get_serializer(data=request.data)
+        create_serializer.is_valid(raise_exception=True)
+        product = create_serializer.save()
+        image_serializer = ProductImageSerializer(data={'image': request.data['image']})
+        image_serializer.is_valid(raise_exception=True)
+        image_serializer.save(product=product)
+        serializer = self.serializer_classes['retrieve'](instance=product, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        product = self.get_object()
+        serializer = self.get_serializer(instance=product, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save()
+        if request.data.get('image', False):
+            image_serializer = ProductImageSerializer(data={'image': request.data['image']})
+            image_serializer.is_valid(raise_exception=True)
+            image_serializer.save(product=product)
+        response_serializer = ProductSerializer(instance=product, context={'request': request})
+        return Response(response_serializer.data)
+
 
 
 @api_view(['POST'])
