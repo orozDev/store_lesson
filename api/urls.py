@@ -8,7 +8,10 @@ from .yasg import urlpatterns as url_doc
 
 router = DefaultRouter()
 router.register('products', views.ProductViewSet)
-router.register('categories', views.CategoryModelViewSet)
+router.register('products-image', views.ProductImageViewSet)
+router.register('products-attribute', views.ProductAttributeViewSet)
+router.register('categories', views.CategoryViewSet)
+router.register('tags', views.TagViewSet)
 
 
 urlpatterns = [

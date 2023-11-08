@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Category, Product, Tag, ProductImage
+from core.models import Category, Product, Tag, ProductImage, ProductAttribute
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -16,12 +16,49 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+
+class ImageForProductCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'image',)
+
+
+class AttributeForProductCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductAttribute
+        fields = ('id', 'name', 'value',)
+
+
+class CreateProductSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField()
+
+    class Meta:
+        model = Product
+        fields = '__all__'
+
+    def create(self, validated_data):
+        image = validated_data.pop('image', None)
+        product = Product.objects.create(**validated_data)
+        image_serializer = ImageForProductCreationSerializer(data=image)
+        image_serializer.is_valid(raise_exception=True)
+        image_serializer.save(product=product)
+        return product
+
+
+class ReadProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(many=False)
     tags = TagSerializer(many=True)
     user = serializers.CharField(source='user.email')
     user_id = serializers.IntegerField(source='user.id')
     # image = serializers.ReadOnlyField(source='image.url')
     image = serializers.SerializerMethodField()
+    images = ImageForProductCreationSerializer(many=True)
+    attributes = AttributeForProductCreationSerializer(many=True)
 
     class Meta:
         model = Product
@@ -34,25 +71,14 @@ class ProductSerializer(serializers.ModelSerializer):
         return None
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class ProductAttributeSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = ProductImage
-        fields = ('image',)
-
-
-class CreateUpdateProductSerializer(serializers.ModelSerializer):
-
-    image = serializers.ImageField()
-
-    class Meta:
-        model = Product
+        model = ProductAttribute
         fields = '__all__'
 
-    def create(self, validated_data):
-        validated_data.pop('image', None)
-        return super().create(validated_data)
 
-    def update(self, instance, validated_data):
-        validated_data.pop('image', None)
-        return super().update(instance, validated_data)
+class ProductImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductImage
+        fields = '__all__'

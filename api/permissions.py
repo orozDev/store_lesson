@@ -12,6 +12,12 @@ class IsOwner(BasePermission):
         return product.user == request.user or request.user.is_superuser
 
 
+class IsOwnerForProduct(BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        return request.user == obj.product.user or request.user.is_superuser
+
+
 class IsSuperAdmin(BasePermission):
     def has_permission(self, request, view):
 
