@@ -7,8 +7,9 @@ from api.mixins import UltraModelViewSet
 from api.paginations import SimpleResultPagination
 from api.permissions import IsOwner, IsSuperAdmin, IsOwnerForProduct
 from api.serializers import CategorySerializer, ReadProductSerializer, CreateProductSerializer, \
-    TagSerializer, ProductAttributeSerializer, ProductImageSerializer, ProductSerializer
-from core.models import Category, Product, Tag, ProductAttribute, ProductImage
+    TagSerializer, ProductAttributeSerializer, ProductImageSerializer, ProductSerializer, OrderSerializer, \
+    CreateOrderSerializer, OrderItemSerializer
+from core.models import Category, Product, Tag, ProductAttribute, ProductImage, Order, OrderItem
 
 
 class CategoryViewSet(UltraModelViewSet):
@@ -97,3 +98,45 @@ class ProductImageViewSet(UltraModelViewSet):
         'update': (IsAuthenticated, IsOwnerForProduct,),
         'destroy': (IsAuthenticated, IsOwnerForProduct,),
     }
+
+
+class OrderViewSet(UltraModelViewSet):
+    queryset = Order.objects.all()
+    serializer_classes = {
+        'list': OrderSerializer,
+        'retrieve': OrderSerializer,
+        'update': OrderSerializer,
+        'create': CreateOrderSerializer,
+    }
+    pagination_class = SimpleResultPagination
+    lookup_field = 'id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    ordering_fields = ['created_at']
+    search_fields = ['name', 'email', 'phone', 'address', 'home']
+    filterset_fields = ['items__product']
+    permission_classes_by_action = {
+        'list': (AllowAny,),
+        'retrieve': (AllowAny,),
+        'create': (AllowAny,),
+        'update': (IsAuthenticated, IsSuperAdmin,),
+        'destroy': (IsAuthenticated, IsSuperAdmin,),
+    }
+
+
+class OrderItemViewSet(UltraModelViewSet):
+    queryset = OrderItem.objects.all()
+    serializer_class = OrderItemSerializer
+    pagination_class = SimpleResultPagination
+    lookup_field = 'id'
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    ordering_fields = ['created_at', 'price', 'quantity']
+    filterset_fields = ['product', 'order']
+    permission_classes_by_action = {
+        'list': (AllowAny,),
+        'retrieve': (AllowAny,),
+        'create': (AllowAny,),
+        'update': (IsAuthenticated, IsSuperAdmin,),
+        'destroy': (IsAuthenticated, IsSuperAdmin,),
+    }
+
+

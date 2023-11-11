@@ -1,6 +1,7 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_resized import ResizedImageField
+from phonenumber_field.modelfields import PhoneNumberField
 
 from utils.models import TimeStampAbstractModel
 
@@ -36,7 +37,8 @@ class Product(TimeStampAbstractModel):
     name = models.CharField('название', max_length=100)
     description = models.CharField('описание', max_length=255, help_text='Просто описание')
     content = models.TextField('контент')
-    category = models.ForeignKey('core.Category', models.PROTECT, verbose_name='категория', help_text='Выберите категорию')
+    category = models.ForeignKey('core.Category', models.PROTECT, verbose_name='категория',
+                                 help_text='Выберите категорию')
     tags = models.ManyToManyField('core.Tag', verbose_name='теги')
     price = models.DecimalField('цена', max_digits=10, decimal_places=2, default=0.0)
     user = models.ForeignKey('account.User', models.CASCADE, verbose_name='пользователь')
@@ -67,7 +69,6 @@ class ProductImage(TimeStampAbstractModel):
 
 
 class ProductAttribute(TimeStampAbstractModel):
-
     class Meta:
         verbose_name = 'атрибут товара'
         verbose_name_plural = 'атрибуты товаров'
@@ -79,5 +80,48 @@ class ProductAttribute(TimeStampAbstractModel):
 
     def __str__(self):
         return f'{self.name} - {self.value}'
+
+
+class Order(TimeStampAbstractModel):
+    class Meta:
+        verbose_name = 'заказ'
+        verbose_name_plural = 'заказы'
+        ordering = ('-created_at',)
+
+    name = models.CharField('имя и фамилия', max_length=140)
+    email = models.EmailField('электронная почта')
+    phone = PhoneNumberField('номер телефона')
+    address = models.CharField('адрес', max_length=255)
+    home = models.CharField('номер квартала или дома', max_length=150)
+
+    def __str__(self):
+        return f'{self.name} - {self.email}'
+
+    @property
+    def total_price(self):
+        return sum(item.total_price for item in self.items.all())
+
+    total_price.fget.short_description = 'Итоговая цена'
+
+
+class OrderItem(TimeStampAbstractModel):
+
+    class Meta:
+        verbose_name = 'заказ товара'
+        verbose_name_plural = 'заказы товаров'
+        ordering = ('-created_at',)
+
+    order = models.ForeignKey('core.Order', models.CASCADE, 'items', verbose_name='заказ')
+    product = models.ForeignKey('core.Product', models.PROTECT, verbose_name='товар')
+    price = models.DecimalField('цена', max_digits=10, decimal_places=2, default=0.0)
+    quantity = models.PositiveIntegerField('количество', default=1)
+
+    def __str__(self):
+        return f'{self.order} - {self.product}'
+
+    @property
+    def total_price(self):
+        return self.price * self.quantity
+    total_price.fget.short_description = 'Итоговая цена'
 
 # Create your models here.

@@ -3,7 +3,7 @@ from django import forms
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from core.models import Tag, Category, Product, ProductImage, ProductAttribute
+from core.models import Tag, Category, Product, ProductImage, ProductAttribute, OrderItem, Order
 
 
 @admin.register(Tag)
@@ -63,5 +63,31 @@ class ProductAdmin(admin.ModelAdmin):
         if item.image:
             return mark_safe(f'<img src="{item.image.url}" width="100%">')
         return '-'
+
+
+class OrderItemStackedInline(admin.StackedInline):
+    model = OrderItem
+    extra = 1
+    readonly_fields = ('price', 'total_price', 'created_at', 'updated_at',)
+
+
+class OrderAdminForm(forms.ModelForm):
+
+    address = forms.CharField(widget=forms.Textarea, label='Адрес')
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'email', 'phone', 'total_price',)
+    list_display_links = ('id', 'name',)
+    search_fields = ('id', 'name', 'email', 'phone', 'address', 'home',)
+    list_filter = ('created_at',)
+    readonly_fields = ('total_price', 'created_at', 'updated_at',)
+    inlines = (OrderItemStackedInline,)
+    form = OrderAdminForm
 
 # Register your models here.

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from core.models import Category, Product, Tag, ProductImage, ProductAttribute
+from core.models import Category, Product, Tag, ProductImage, ProductAttribute, Order, OrderItem
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -16,7 +16,6 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = '__all__'
@@ -43,7 +42,7 @@ class CreateProductSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         image = validated_data.pop('image', None)
-        product = Product.objects.create(**validated_data)
+        product = super().create(validated_data)
         image_serializer = ImageForProductCreationSerializer(data=image)
         image_serializer.is_valid(raise_exception=True)
         image_serializer.save(product=product)
@@ -64,15 +63,14 @@ class ReadProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
-    def get_image(self, item):
-        req = self.context['request']
-        if item.image:
-            return req.build_absolute_uri(item.image.url)
+    def get_image(self, product):
+        request = self.context['request']
+        if product.image:
+            return request.build_absolute_uri(product.image.url)
         return None
 
 
 class ProductAttributeSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ProductAttribute
         fields = '__all__'
@@ -81,4 +79,49 @@ class ProductAttributeSerializer(serializers.ModelSerializer):
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
+        fields = '__all__'
+
+
+class ItemForReadOrderSerializer(serializers.ModelSerializer):
+    product = ReadProductSerializer(read_only=True)
+    total_price = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ('product', 'price', 'quantity', 'total_price',)
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = ItemForReadOrderSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
+class ItemForCreateOrderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrderItem
+        fields = ('product', 'price', 'quantity',)
+
+
+class CreateOrderSerializer(serializers.ModelSerializer):
+    items = ItemForCreateOrderSerializer(many=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def create(self, validated_data):
+        items = validated_data.pop('items', [])
+        order = Order.objects.create(**validated_data)
+        for item in items:
+            OrderItem.objects.create(**item, order=order)
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = OrderItem
         fields = '__all__'
