@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django_resized import ResizedImageField
@@ -96,6 +97,10 @@ class Order(TimeStampAbstractModel):
 
     def __str__(self):
         return f'{self.name} - {self.email}'
+
+    def clean(self):
+        if len(self.name) < 3:
+            raise ValidationError({'name': ['Name must be at least 3 characters']})
 
     @property
     def total_price(self):

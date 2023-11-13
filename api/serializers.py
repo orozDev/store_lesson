@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from rest_framework import serializers
 
 from core.models import Category, Product, Tag, ProductImage, ProductAttribute, Order, OrderItem
@@ -98,12 +100,19 @@ class OrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+    def to_representation(self, instance):
+        # self.context['request']
+        ret = super().to_representation(instance)
+        total_price = sum(item.total_price for item in instance.items.all())
+        ret.setdefault('total_price', total_price)
+        return ret
+
 
 class ItemForCreateOrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderItem
-        fields = ('product', 'price', 'quantity',)
+        fields = ('product', 'quantity',)
 
 
 class CreateOrderSerializer(serializers.ModelSerializer):
@@ -113,11 +122,27 @@ class CreateOrderSerializer(serializers.ModelSerializer):
         model = Order
         fields = '__all__'
 
+    def validate(self, attrs):
+        if len(attrs['name']) < 3:
+            raise serializers.ValidationError({
+                'name': [
+                    'Name must be at least 3 characters'
+                ]
+            })
+
+        return attrs
+
+    def validate_home(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError(['Home must be at least 3 characters'])
+        return value
+
     def create(self, validated_data):
         items = validated_data.pop('items', [])
         order = Order.objects.create(**validated_data)
         for item in items:
             OrderItem.objects.create(**item, order=order)
+        return order
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
