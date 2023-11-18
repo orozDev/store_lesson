@@ -42,7 +42,7 @@ class Product(TimeStampAbstractModel):
                                  help_text='Выберите категорию')
     tags = models.ManyToManyField('core.Tag', verbose_name='теги')
     price = models.DecimalField('цена', max_digits=10, decimal_places=2, default=0.0)
-    user = models.ForeignKey('account.User', models.CASCADE, verbose_name='пользователь')
+    user = models.ForeignKey('account.Usiter', models.CASCADE, verbose_name='пользователь')
     rating = models.PositiveIntegerField('рейтинг', validators=[MinValueValidator(1), MaxValueValidator(5)])
     is_published = models.BooleanField('публичность', default=True)
 
@@ -84,6 +84,19 @@ class ProductAttribute(TimeStampAbstractModel):
 
 
 class Order(TimeStampAbstractModel):
+
+    WAITING = 'waiting'
+    CANCELED = 'canceled'
+    ON_DELIVERY = 'on_delivery'
+    DELIVERED = 'delivered'
+
+    ORDER_STATUS = (
+        (WAITING, 'В ожидание'),
+        (CANCELED, 'Отменено'),
+        (ON_DELIVERY, 'Доставляется'),
+        (DELIVERED, 'Доставлено')
+    )
+
     class Meta:
         verbose_name = 'заказ'
         verbose_name_plural = 'заказы'
@@ -94,6 +107,7 @@ class Order(TimeStampAbstractModel):
     phone = PhoneNumberField('номер телефона')
     address = models.CharField('адрес', max_length=255)
     home = models.CharField('номер квартала или дома', max_length=150)
+    status = models.CharField('статус', choices=ORDER_STATUS, default=WAITING, max_length=20)
 
     def __str__(self):
         return f'{self.name} - {self.email}'

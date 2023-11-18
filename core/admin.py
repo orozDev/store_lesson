@@ -82,7 +82,7 @@ class OrderAdminForm(forms.ModelForm):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'email', 'phone', 'total_price',)
+    list_display = ('id', 'name', 'email', 'phone', 'total_price', 'status',)
     list_display_links = ('id', 'name',)
     search_fields = ('id', 'name', 'email', 'phone', 'address', 'home',)
     list_filter = ('created_at',)
