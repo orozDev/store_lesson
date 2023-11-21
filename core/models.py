@@ -42,7 +42,7 @@ class Product(TimeStampAbstractModel):
                                  help_text='Выберите категорию')
     tags = models.ManyToManyField('core.Tag', verbose_name='теги')
     price = models.DecimalField('цена', max_digits=10, decimal_places=2, default=0.0)
-    user = models.ForeignKey('account.Usiter', models.CASCADE, verbose_name='пользователь')
+    user = models.ForeignKey('account.User', models.CASCADE, verbose_name='пользователь')
     rating = models.PositiveIntegerField('рейтинг', validators=[MinValueValidator(1), MaxValueValidator(5)])
     is_published = models.BooleanField('публичность', default=True)
 
