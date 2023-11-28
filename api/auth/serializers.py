@@ -48,3 +48,8 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+
+class SendResetPasswordKeySerializer(serializers.Serializer):
+
+    email = serializers.EmailField()

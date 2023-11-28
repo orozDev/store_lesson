@@ -1,7 +1,11 @@
+from uuid import uuid4
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_resized import ResizedImageField
 from phonenumber_field.modelfields import PhoneNumberField
+from django.utils import timezone
+from django.conf import settings
 
 from account.managers import UserManager
 from utils.models import TimeStampAbstractModel
@@ -35,4 +39,22 @@ class User(AbstractUser, TimeStampAbstractModel):
     def __str__(self):
         return f'{self.get_full_name or str(self.email)}'
 
+
+def get_expire_date():
+    return timezone.now() + timezone.timedelta(days=3)
+
+
+class UserResetPassword(TimeStampAbstractModel):
+
+    class Meta:
+        verbose_name = 'Ключ для сброса пароля'
+        verbose_name_plural = 'Ключи для сброса пароля'
+        ordering = ('-created_at', '-updated_at')
+
+    user = models.OneToOneField('account.User', on_delete=models.CASCADE, verbose_name='пользователь')
+    key = models.UUIDField('ключ', default=uuid4, editable=False)
+    expire_date = models.DateTimeField('срок действия', default=get_expire_date)
+
+    def __str__(self):
+        return f'{self.user}'
 # Create your models here.

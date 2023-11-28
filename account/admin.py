@@ -4,7 +4,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from .models import User
+from .models import User, UserResetPassword
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -76,5 +77,14 @@ class UserAdmin(BaseUserAdmin):
             return mark_safe(
                 f'<img src="{user.avatar.url}" alt="{user.get_full_name}" width="100px" />')
         return '-'
+
+
+@admin.register(UserResetPassword)
+class UserResetPasswordKeyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'expire_date')
+    list_display_links = ('id', 'user',)
+    list_filter = ('user',)
+    readonly_fields = ('key', 'created_at', 'updated_at',)
+    raw_id_fields = ('user',)
 
 # Register your models here.
