@@ -53,3 +53,9 @@ class RegisterUserSerializer(serializers.ModelSerializer):
 class SendResetPasswordKeySerializer(serializers.Serializer):
 
     email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+
+    key = serializers.UUIDField()
+    new_password = serializers.CharField(validators=[validate_password])

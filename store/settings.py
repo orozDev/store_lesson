@@ -185,6 +185,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+FRONT_HOST = config('FRONT_HOST')
+RESET_PASSWORD_LINK = config('RESET_PASSWORD_LINK')
+
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap4'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'

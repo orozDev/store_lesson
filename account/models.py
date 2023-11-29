@@ -52,9 +52,13 @@ class UserResetPassword(TimeStampAbstractModel):
         ordering = ('-created_at', '-updated_at')
 
     user = models.OneToOneField('account.User', on_delete=models.CASCADE, verbose_name='пользователь')
-    key = models.UUIDField('ключ', default=uuid4, editable=False)
+    key = models.UUIDField('ключ', default=uuid4, editable=False, unique=True)
     expire_date = models.DateTimeField('срок действия', default=get_expire_date)
 
     def __str__(self):
         return f'{self.user}'
+
+    def is_expired(self):
+        return timezone.now() > self.expire_date
+
 # Create your models here.
